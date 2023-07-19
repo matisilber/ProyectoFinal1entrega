@@ -1,0 +1,20 @@
+<p>{{ today | date: 'fullDate' }}</p>
+
+<div class="mb-5">
+  <button (click)="onCreateUser()" mat-flat-button color="primary" type="button">
+    <mat-icon>add</mat-icon>
+    Agregar Alumno
+  </button>
+</div>
+
+
+<p *appRepetir="1">
+  Estos son, <span appResaltado="yellow">Los alumnos registrados</span>
+</p>
+
+<app-users-table
+  [dataSource]="users"
+  (deleteUser)="onDeleteUser($event)"
+  (editUser)="onEditUser($event)"
+></app-users-table>
+
