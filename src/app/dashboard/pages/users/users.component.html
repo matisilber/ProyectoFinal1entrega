@@ -1,5 +1,3 @@
-<p>{{ today | date: 'fullDate' }}</p>
-
 <div class="mb-5">
   <button (click)="onCreateUser()" mat-flat-button color="primary" type="button">
     <mat-icon>add</mat-icon>
@@ -13,7 +11,7 @@
 </p>
 
 <app-users-table
-  [dataSource]="users"
+  [dataSource]="(users | async) || []"
   (deleteUser)="onDeleteUser($event)"
   (editUser)="onEditUser($event)"
 ></app-users-table>

@@ -1,28 +1,27 @@
-import { Component } from '@angular/core';
+import { Component, Inject, OnDestroy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { UserFormDialogComponent } from './components/user-form-dialog/user-form-dialog.component';
 import { User } from './models';
+import { UserService } from './user.service';
+import { Observable, Subject } from 'rxjs';
 
-const ELEMENT_DATA: User[] = [
-  {
-    id: 1,
-    name: 'Matias',
-    surname: 'Silberman',
-    email: 'msil@mail.com',
-    password: '123456',
-  },
-];
 @Component({
   selector: 'app-users',
   templateUrl: './users.component.html',
   styleUrls: ['./users.component.scss'],
 })
 export class UsersComponent {
-  public users: User[] = ELEMENT_DATA;
+  public users: Observable<User[]>;
+  public destroyed = new Subject<boolean>();
 
-  public today = new Date();
+  public loading = false;
+  constructor(private matDialog: MatDialog, private userService: UserService) {
+    this.userService.loadUsers();
+    this.users = this.userService.getUsers();
+  }
 
-  constructor(private matDialog: MatDialog) {
+  ngOnDestroy(): void {
+    this.destroyed.next(true);
   }
 
   onCreateUser(): void {
@@ -35,28 +34,21 @@ export class UsersComponent {
       .subscribe({
         next: (v) => {
           if (v) {
-
-            this.users = [
-              ...this.users,
-              {
-                id: this.users.length + 1,
-                name: v.name,
-                email: v.email,
-                password: v.password,
-                surname: v.surname,
-              },
-            ];
-            console.log('RECIBIMOS EL VALOR: ', v);
-          } else {
-            console.log('SE CANCELO');
+            this.userService.createUser({
+              name: v.name,
+              email: v.email,
+              password: v.password,
+              surname: v.surname,
+            });
           }
         },
       });
   }
 
+
   onDeleteUser(userToDelete: User): void {
     if (confirm(`¿Está seguro de eliminar a ${userToDelete.name}?`)) {
-      this.users = this.users.filter((u) => u.id !== userToDelete.id);
+      this.userService.deleteUserById(userToDelete.id);
     }
   }
 
@@ -71,13 +63,8 @@ export class UsersComponent {
 
     .subscribe({
       next: (userUpdated) => {
-        console.log(userUpdated)
         if (userUpdated) {
-          this.users = this.users.map((user) => {
-            return user.id === userToEdit.id
-              ? { ...user, ...userUpdated } 
-              : user 
-          })
+          this.userService.updateUserById(userToEdit.id, userUpdated);
         }
       },
     });
